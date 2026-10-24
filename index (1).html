@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search Deck — Search Team Operations & Diagnostics Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --font-display: 'Plus Jakarta Sans', sans-serif;
+      --font-sans: 'DM Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3, h4, .font-display {
+      font-family: var(--font-display);
+      text-wrap: balance;
+    }
+    .font-mono, .tabular-nums {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+<body class="bg-[#0B0F17] text-[#F9FAFB] min-h-screen flex flex-col transition-colors">
+  <!-- Global Injected Code Slot -->
+  <div id="slot-global-top"></div>
+
+  <!-- Top Bar (Strict 3-Zone Contract) -->
+  <header id="app-header" class="flex items-center justify-between gap-8 px-6 py-4 border-b border-slate-800 bg-[#0B0F17]/95">
+    <a href="#explore" onclick="switchTab('explore'); return false;" class="text-lg font-bold tracking-tight font-display whitespace-nowrap shrink-0">
+      Search Deck
+    </a>
+    <nav class="hidden md:flex items-center gap-6 text-sm font-medium" id="top-nav">
+      <a href="#explore" data-tab="explore" onclick="switchTab('explore'); return false;" class="nav-link py-1 border-b-2 whitespace-nowrap shrink-0">Explore</a>
+      <a href="#metrics" data-tab="metrics" onclick="switchTab('metrics'); return false;" class="nav-link py-1 border-b-2 whitespace-nowrap shrink-0">Metrics</a>
+      <a href="#audio" data-tab="audio" onclick="switchTab('audio'); return false;" class="nav-link py-1 border-b-2 whitespace-nowrap shrink-0">Audio Test</a>
+      <a href="#feedback" data-tab="feedback" onclick="switchTab('feedback'); return false;" class="nav-link py-1 border-b-2 whitespace-nowrap shrink-0">Feedback</a>
+      <a href="#suggestions" data-tab="suggestions" onclick="switchTab('suggestions'); return false;" class="nav-link py-1 border-b-2 whitespace-nowrap shrink-0">Suggestions</a>
+    </nav>
+    <div class="flex items-center shrink-0">
+      <button id="admin-top-btn" onclick="switchTab('admin')" class="accent-btn px-4 py-2 text-xs font-medium text-white rounded-lg transition-colors whitespace-nowrap shrink-0">
+        Admin Console
+      </button>
+    </div>
+  </header>
+
+  <!-- Secondary Workspace Context Bar -->
+  <div id="workspace-bar" class="px-6 py-2.5 border-b border-slate-800/80 bg-slate-900/60 text-slate-400 text-xs flex flex-wrap items-center justify-between gap-4">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="font-medium">Search Team Operations</span>
+      <span>/</span>
+      <span id="breadcrumb-label" class="text-slate-200 font-medium">Explore Websites Hub</span>
+      <span>·</span>
+      <span id="status-counter" class="font-mono tabular-nums">3 Live · 1 Under Construction</span>
+      <span>·</span>
+      <span id="global-save-status" class="font-mono tabular-nums text-emerald-500">Global Save Active</span>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <button onclick="switchTab('account')" id="account-bar-btn" class="px-3 py-1 text-xs font-medium rounded-md border border-slate-800 bg-slate-900 text-slate-200 hover:bg-slate-800 whitespace-nowrap shrink-0">
+        Global Data · <span id="account-bar-name">Account</span>
+      </button>
+      <button onclick="toggleThemeMode()" id="theme-toggle-btn" class="px-3 py-1 text-xs font-medium rounded-md border border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 whitespace-nowrap shrink-0">
+        Light Mode
+      </button>
+    </div>
+  </div>
+
+  <!-- Global Announcement Banner -->
+  <div id="announcement-banner" class="px-6 py-2 border-b border-amber-500/20 bg-amber-500/10 text-amber-300 text-xs flex items-center justify-between gap-4">
+    <span id="announcement-text"></span>
+    <button onclick="dismissAnnouncement()" class="text-xs underline opacity-75 hover:opacity-100 whitespace-nowrap shrink-0">Dismiss</button>
+  </div>
+
+  <!-- Main Viewport -->
+  <main id="main-content" class="flex-1 w-full max-w-[1360px] mx-auto px-6 py-8"></main>
+
+  <!-- Slide-over Preview Drawer -->
+  <div id="preview-drawer" class="fixed inset-0 z-50 hidden justify-end bg-black/70 backdrop-blur-sm">
+    <div id="preview-drawer-panel" class="w-full max-w-5xl h-full flex flex-col border-l border-slate-800 bg-slate-950 text-slate-100">
+      <div class="flex flex-wrap items-center justify-between gap-4 px-6 py-4 border-b border-slate-800">
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 id="preview-title" class="text-base font-bold"></h3>
+            <span id="preview-domain" class="text-xs text-slate-400 font-mono"></span>
+          </div>
+          <div id="preview-url" class="text-xs text-slate-400 font-mono"></div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="setPreviewViewport('desktop')" class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-800 bg-slate-900 text-slate-200">Desktop</button>
+          <button onclick="setPreviewViewport('mobile')" class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-800 bg-slate-900 text-slate-200">Mobile</button>
+          <a id="preview-ext-link" href="#" target="_blank" rel="noopener noreferrer" class="accent-btn px-3.5 py-2 text-xs font-medium text-white rounded-lg">Open in New Tab</a>
+          <button onclick="closePreviewDrawer()" class="px-3 py-2 text-xs rounded-lg border border-slate-800 bg-slate-900 text-slate-300">Close</button>
+        </div>
+      </div>
+      <div id="preview-construction-alert" class="hidden px-6 py-2.5 bg-amber-500/15 border-b border-amber-500/30 text-amber-400 text-xs">
+        <strong>Under Construction Notice:</strong> This property is marked Under Construction. Staging routes are displayed below.
+      </div>
+      <div class="flex-1 bg-slate-900/50 p-4 flex items-center justify-center overflow-hidden">
+        <div id="preview-frame-wrap" class="w-full h-full bg-white rounded-lg overflow-hidden border border-slate-700 transition-all">
+          <iframe id="preview-iframe" src="about:blank" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-12 px-6 py-5 border-t border-slate-800/80 text-slate-500 text-xs flex flex-wrap items-center justify-between gap-4">
+    <div>Search Deck · Internal Operations Hub for Search Team</div>
+    <div class="flex items-center gap-4">
+      <a href="https://autos-search.netlify.app" target="_blank" rel="noopener noreferrer" class="hover:underline">CarSearch.net</a>
+      <span>·</span>
+      <a href="https://blobsearch.vercel.app" target="_blank" rel="noopener noreferrer" class="hover:underline">BlobSearch.net (Under Construction)</a>
+      <span>·</span>
+      <a href="https://def-search.netlify.app" target="_blank" rel="noopener noreferrer" class="hover:underline">DefSearch.net</a>
+      <span>·</span>
+      <a href="https://all-search-zeta.vercel.app" target="_blank" rel="noopener noreferrer" class="hover:underline">AllSearch.com</a>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast-box" class="fixed bottom-5 right-5 z-50 hidden px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs font-medium shadow-lg"></div>
+
+  <script>
+    // =========================================================================
+    // 1. INITIAL STATE & 4-LAYER BROWSER PERSISTENCE (LocalStorage + IndexedDB + BroadcastChannel)
+    // =========================================================================
+    const STORAGE_KEY = 'search_deck_standalone_state_v1';
+    const IDB_NAME = 'SearchDeckStandaloneGlobalDB';
+    const IDB_STORE = 'global_state';
+    const syncChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('search_deck_standalone_sync') : null;
+    const AUTH_TOKEN = [49, 35, 50, 37, 57].map(c => String.fromCharCode(c)).join('');
+
+    const ACCENT_MAP = {
+      blue: { bg: 'bg-blue-600 hover:bg-blue-500', text: 'text-blue-500', hex: '#3b82f6' },
+      emerald: { bg: 'bg-emerald-600 hover:bg-emerald-500', text: 'text-emerald-500', hex: '#10b981' },
+      violet: { bg: 'bg-violet-600 hover:bg-violet-500', text: 'text-violet-500', hex: '#8b5cf6' },
+      amber: { bg: 'bg-amber-600 hover:bg-amber-500', text: 'text-amber-500', hex: '#f59e0b' },
+      rose: { bg: 'bg-rose-600 hover:bg-rose-500', text: 'text-rose-500', hex: '#f43f5e' }
+    };
+
+    const DEFAULT_STATE = {
+      activeTab: 'explore',
+      adminSubTab: 'sites',
+      isAdminUnlocked: false,
+      exploreStatusFilter: 'all',
+      exploreQuery: '',
+      selectedMetricSite: 'all',
+      telemetryPaused: false,
+      globalConfig: {
+        themeMode: 'dark',
+        accentColor: 'blue',
+        announcementText: 'Search Deck Network Notice: BlobSearch.net (blobsearch.vercel.app) is currently Under Construction — staging indexers active.',
+        announcementActive: true
+      },
+      userAccount: {
+        displayName: 'Search Team Operator',
+        email: 'operator@searchdeck.internal',
+        jobTitle: 'Lead Search Quality Engineer',
+        department: 'Core Ranking & Federation',
+        bio: 'Monitoring CarSearch.net, BlobSearch.net, DefSearch.net, and AllSearch.com performance and voice search diagnostics.'
+      },
+      sites: [
+        {
+          id: 'car-search',
+          name: 'CarSearch.net',
+          domain: 'autos-search.netlify.app',
+          url: 'https://autos-search.netlify.app',
+          description: 'Vertical automotive search engine indexing vehicle specifications, dealer inventory, trim comparisons, and performance telemetry.',
+          category: 'Vertical Search',
+          status: 'live',
+          avgLatencyMs: 38,
+          p95LatencyMs: 74,
+          uptimePct: 99.96,
+          qps: 1420,
+          errorRatePct: 0.04,
+          indexSizeMillion: 48.5,
+          ownerTeam: 'Mobility Index Squad'
+        },
+        {
+          id: 'blob-search',
+          name: 'BlobSearch.net',
+          domain: 'blobsearch.vercel.app',
+          url: 'https://blobsearch.vercel.app',
+          description: 'Unstructured binary object, media asset, and vector embedding search engine. Currently undergoing core index pipeline construction.',
+          category: 'Media & Object Search',
+          status: 'under_construction',
+          avgLatencyMs: 92,
+          p95LatencyMs: 185,
+          uptimePct: 96.4,
+          qps: 310,
+          errorRatePct: 0.42,
+          indexSizeMillion: 12.2,
+          ownerTeam: 'Vector & Blob Storage Team'
+        },
+        {
+          id: 'def-search',
+          name: 'DefSearch.net',
+          domain: 'def-search.netlify.app',
+          url: 'https://def-search.netlify.app',
+          description: 'High-speed lexical definition, technical glossary, and semantic disambiguation engine for rapid knowledge lookup.',
+          category: 'Lexical & Knowledge',
+          status: 'live',
+          avgLatencyMs: 24,
+          p95LatencyMs: 49,
+          uptimePct: 99.99,
+          qps: 2180,
+          errorRatePct: 0.02,
+          indexSizeMillion: 86.0,
+          ownerTeam: 'Knowledge Graph Squad'
+        },
+        {
+          id: 'all-search',
+          name: 'AllSearch.com',
+          domain: 'all-search-zeta.vercel.app',
+          url: 'https://all-search-zeta.vercel.app',
+          description: 'Unified meta-search aggregator combining results across automotive, lexical, web, and multi-domain indexes with federated ranking.',
+          category: 'Federated Meta-Search',
+          status: 'live',
+          avgLatencyMs: 46,
+          p95LatencyMs: 88,
+          uptimePct: 99.94,
+          qps: 3640,
+          errorRatePct: 0.06,
+          indexSizeMillion: 215.4,
+          ownerTeam: 'Core Ranking & Federation'
+        }
+      ],
+      ads: [
+        {
+          id: 'ad-1',
+          title: 'AllSearch.com Federated Ranking v2.4 Now Live',
+          description: 'Test cross-domain query federation linking CarSearch.net and DefSearch.net with sub-50ms median response times.',
+          ctaText: 'Launch AllSearch.com',
+          targetUrl: 'https://all-search-zeta.vercel.app',
+          sponsor: 'Search Team Core Ops',
+          placement: 'explore_banner',
+          active: true
+        }
+      ],
+      codeModules: [
+        {
+          id: 'mod-1',
+          name: 'Multi-Site Quick Query Tester',
+          placement: 'explore_widget',
+          html: '<div class="p-4 rounded-xl border border-blue-500/30 bg-blue-500/10 flex flex-wrap items-center justify-between gap-3"><div class="text-xs"><strong>Quick Network Query Tester</strong> · Run a test search directly on AllSearch.com</div><div class="flex items-center gap-2"><input id="sd-q-inp" type="text" placeholder="Enter test query..." class="px-3 py-1.5 text-xs rounded bg-slate-950 border border-slate-700 text-white" /><button id="sd-q-btn" class="px-3 py-1.5 text-xs font-semibold rounded bg-blue-600 text-white">Search AllSearch</button></div></div>',
+          css: '',
+          js: 'const b = container.querySelector("#sd-q-btn"); const inp = container.querySelector("#sd-q-inp"); if(b && inp){ b.onclick = () => window.open("https://all-search-zeta.vercel.app/?q=" + encodeURIComponent(inp.value || "search"), "_blank"); }',
+          enabled: true
+        }
+      ],
+      feedbackList: [
+        {
+          id: 'fb-1',
+          siteName: 'BlobSearch.net',
+          author: 'Elena Rostova',
+          severity: 'high',
+          category: 'Indexing & Construction',
+          title: 'BlobSearch chunk manifest endpoint returning 503 on large MIME blobs',
+          message: 'While BlobSearch.net is under construction, staging tests with >25MB binary assets time out during shard replication.',
+          status: 'reviewing',
+          createdAt: '22 mins ago'
+        },
+        {
+          id: 'fb-2',
+          siteName: 'CarSearch.net',
+          author: 'Marcus Vance',
+          severity: 'medium',
+          category: 'Ranking & Relevance',
+          title: 'EV range filter sorting hybrids ahead of pure battery-electric trims',
+          message: 'Searching for long range electric sedan on autos-search.netlify.app ranks plug-in hybrids above 300+ mile BEVs.',
+          status: 'open',
+          createdAt: '1 hour ago'
+        }
+      ],
+      suggestions: [
+        {
+          id: 'sug-1',
+          title: 'Add side-by-side query diff mode between AllSearch.com and CarSearch.net',
+          description: 'Allow evaluators to enter a single automotive query and compare the top 10 ranked results.',
+          targetSite: 'AllSearch.com',
+          category: 'Evaluation Tooling',
+          author: 'Marcus Vance',
+          votes: 28,
+          hasVoted: false,
+          status: 'planned'
+        },
+        {
+          id: 'sug-2',
+          title: 'Auto-notify Search Deck when BlobSearch.net construction milestones complete',
+          description: 'Integrate deployment webhook status so the team knows when BlobSearch.net transitions from Under Construction to beta staging.',
+          targetSite: 'BlobSearch.net',
+          category: 'Infrastructure',
+          author: 'Elena Rostova',
+          votes: 19,
+          hasVoted: true,
+          status: 'proposed'
+        }
+      ],
+      globalStore: [
+        { id: 'g-1', key: 'default_federated_engine', value: 'AllSearch.com (all-search-zeta.vercel.app)', category: 'Routing Config', updatedAt: 'Today' },
+        { id: 'g-2', key: 'blobsearch_construction_stage', value: 'Stage 2: Vector Shard Indexing', category: 'Deployment State', updatedAt: 'Today' }
+      ]
+    };
+
+    let state = loadState();
+    let telemetrySeries = [];
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return Object.assign({}, DEFAULT_STATE, JSON.parse(raw));
+      } catch (e) {}
+      return JSON.parse(JSON.stringify(DEFAULT_STATE));
+    }
+
+    function saveState(skipBroadcast) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        saveStateToIDB(state);
+        const nowStr = new Date().toTimeString().slice(0, 8);
+        const el = document.getElementById('global-save-status');
+        if (el) el.textContent = 'Global Save Active (' + nowStr + ')';
+        if (!skipBroadcast && syncChannel) {
+          syncChannel.postMessage({ type: 'SYNC', timestamp: Date.now() });
+        }
+      } catch (e) {}
+    }
+
+    function saveStateToIDB(data) {
+      if (!('indexedDB' in window)) return;
+      try {
+        const req = indexedDB.open(IDB_NAME, 1);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
+        };
+        req.onsuccess = () => {
+          const db = req.result;
+          const tx = db.transaction(IDB_STORE, 'readwrite');
+          tx.objectStore(IDB_STORE).put(data, 'master');
+        };
+      } catch (e) {}
+    }
+
+    if (syncChannel) {
+      syncChannel.onmessage = () => {
+        state = loadState();
+        renderApp();
+      };
+    }
+    window.addEventListener('storage', (e) => {
+      if (e.key === STORAGE_KEY) {
+        state = loadState();
+        renderApp();
+      }
+    });
+
+    // Global Window API accessible anywhere in the browser
+    window.SearchDeckGlobal = {
+      set: (key, value, category = 'Window API') => {
+        const cleanKey = String(key).trim();
+        if (!cleanKey) return false;
+        const valStr = typeof value === 'string' ? value : JSON.stringify(value);
+        const existing = state.globalStore.find(i => i.key.toLowerCase() === cleanKey.toLowerCase());
+        if (existing) {
+          existing.value = valStr;
+          existing.category = category;
+          existing.updatedAt = new Date().toTimeString().slice(0, 5);
+        } else {
+          state.globalStore.unshift({
+            id: 'g-' + Date.now(),
+            key: cleanKey,
+            value: valStr,
+            category,
+            updatedAt: new Date().toTimeString().slice(0, 5)
+          });
+        }
+        saveState();
+        renderApp();
+        showToast('Saved global key: ' + cleanKey);
+        return true;
+      },
+      get: (key) => {
+        const found = state.globalStore.find(i => i.key.toLowerCase() === String(key).toLowerCase());
+        return found ? found.value : null;
+      },
+      getAll: () => state.globalStore,
+      remove: (key) => {
+        state.globalStore = state.globalStore.filter(i => i.key !== key && i.id !== key);
+        saveState();
+        renderApp();
+      }
+    };
+
+    function showToast(msg) {
+      const box = document.getElementById('toast-box');
+      if (!box) return;
+      box.textContent = msg;
+      box.classList.remove('hidden');
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => box.classList.add('hidden'), 3000);
+    }
+
+    // =========================================================================
+    // 2. TELEMETRY STREAM GENERATOR
+    // =========================================================================
+    function tickTelemetry() {
+      if (state.telemetryPaused && telemetrySeries.length > 0) return;
+      const t = new Date().toTimeString().split(' ')[0];
+      let totalQps = 0;
+      let weightedLat = 0;
+      const bySite = {};
+      state.sites.forEach(s => {
+        const jitter = (Math.random() - 0.48) * 0.1;
+        const qps = Math.max(10, Math.round(s.qps * (1 + jitter)));
+        const lat = Math.max(10, Math.round(s.avgLatencyMs * (1 + jitter)));
+        bySite[s.id] = { qps, lat, p95: Math.round(lat * 1.9) };
+        totalQps += qps;
+        weightedLat += lat * qps;
+      });
+      telemetrySeries.push({
+        time: t,
+        qps: totalQps,
+        lat: totalQps > 0 ? Math.round(weightedLat / totalQps) : 0,
+        bySite
+      });
+      if (telemetrySeries.length > 20) telemetrySeries.shift();
+      if (state.activeTab === 'metrics') renderMetricsView();
+    }
+    for (let i = 0; i < 15; i++) tickTelemetry();
+    setInterval(tickTelemetry, 2000);
+
+    // =========================================================================
+    // 3. NAVIGATION & SHELL RENDERING
+    // =========================================================================
+    function switchTab(tab) {
+      state.activeTab = tab;
+      saveState();
+      renderApp();
+    }
+
+    function toggleThemeMode() {
+      state.globalConfig.themeMode = state.globalConfig.themeMode === 'dark' ? 'light' : 'dark';
+      saveState();
+      renderApp();
+    }
+
+    function dismissAnnouncement() {
+      state.globalConfig.announcementActive = false;
+      saveState();
+      renderApp();
+    }
+
+    function openPreviewDrawer(siteId) {
+      const site = state.sites.find(s => s.id === siteId);
+      if (!site) return;
+      document.getElementById('preview-title').textContent = site.name;
+      document.getElementById('preview-domain').textContent = '(' + site.domain + ')';
+      document.getElementById('preview-url').textContent = site.url;
+      document.getElementById('preview-ext-link').href = site.url;
+      document.getElementById('preview-iframe').src = site.url;
+      const alertEl = document.getElementById('preview-construction-alert');
+      if (site.status === 'under_construction') alertEl.classList.remove('hidden');
+      else alertEl.classList.add('hidden');
+      const drawer = document.getElementById('preview-drawer');
+      drawer.classList.remove('hidden');
+      drawer.classList.add('flex');
+    }
+
+    function closePreviewDrawer() {
+      const drawer = document.getElementById('preview-drawer');
+      drawer.classList.add('hidden');
+      drawer.classList.remove('flex');
+      document.getElementById('preview-iframe').src = 'about:blank';
+    }
+
+    function setPreviewViewport(mode) {
+      const wrap = document.getElementById('preview-frame-wrap');
+      wrap.style.width = mode === 'mobile' ? '390px' : '100%';
+    }
+
+    function mountCustomSlots() {
+      ['global_top', 'explore_widget', 'dashboard_widget'].forEach(slot => {
+        const hostId = slot === 'global_top' ? 'slot-global-top' : 'slot-' + slot;
+        const container = document.getElementById(hostId);
+        if (!container) return;
+        container.innerHTML = '';
+        state.codeModules.filter(m => m.enabled && m.placement === slot).forEach(mod => {
+          const wrap = document.createElement('div');
+          wrap.innerHTML = '<style>' + (mod.css || '') + '</style>' + (mod.html || '');
+          container.appendChild(wrap);
+          if (mod.js && mod.js.trim()) {
+            try {
+              const fn = new Function('container', mod.js);
+              fn(wrap);
+            } catch (e) {}
+          }
+        });
+      });
+    }
+
+    function renderApp() {
+      const isDark = state.globalConfig.themeMode === 'dark';
+      const accent = ACCENT_MAP[state.globalConfig.accentColor] || ACCENT_MAP.blue;
+
+      document.body.className = isDark
+        ? 'bg-[#0B0F17] text-[#F9FAFB] min-h-screen flex flex-col transition-colors'
+        : 'bg-[#F8FAFC] text-[#0F172A] min-h-screen flex flex-col transition-colors';
+
+      const header = document.getElementById('app-header');
+      header.className = 'flex items-center justify-between gap-8 px-6 py-4 border-b ' +
+        (isDark ? 'border-slate-800 bg-[#0B0F17]/95' : 'border-slate-200 bg-white');
+
+      document.querySelectorAll('.nav-link').forEach(a => {
+        const t = a.getAttribute('data-tab');
+        if (t === state.activeTab) {
+          a.className = 'nav-link py-1 border-b-2 border-current font-semibold whitespace-nowrap shrink-0 ' + accent.text;
+        } else {
+          a.className = 'nav-link py-1 border-b-2 border-transparent whitespace-nowrap shrink-0 ' +
+            (isDark ? 'text-slate-400 hover:text-slate-100' : 'text-slate-600 hover:text-slate-900');
+        }
+      });
+
+      const adminBtn = document.getElementById('admin-top-btn');
+      adminBtn.textContent = state.isAdminUnlocked ? 'Admin Unlocked' : 'Admin Console';
+      adminBtn.className = 'px-4 py-2 text-xs font-medium text-white rounded-lg transition-colors whitespace-nowrap shrink-0 ' + accent.bg;
+
+      document.getElementById('theme-toggle-btn').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+      document.getElementById('account-bar-name').textContent = state.userAccount.displayName.split(' ')[0];
+
+      const liveCount = state.sites.filter(s => s.status === 'live').length;
+      const constCount = state.sites.filter(s => s.status === 'under_construction').length;
+      document.getElementById('status-counter').textContent = liveCount + ' Live · ' + constCount + ' Under Construction';
+
+      const annBanner = document.getElementById('announcement-banner');
+      if (state.globalConfig.announcementActive && state.globalConfig.announcementText) {
+        annBanner.classList.remove('hidden');
+        document.getElementById('announcement-text').textContent = state.globalConfig.announcementText;
+      } else {
+        annBanner.classList.add('hidden');
+      }
+
+      if (state.activeTab === 'explore') renderExploreView();
+      else if (state.activeTab === 'metrics') renderMetricsView();
+      else if (state.activeTab === 'audio') renderAudioView();
+      else if (state.activeTab === 'feedback') renderFeedbackView();
+      else if (state.activeTab === 'suggestions') renderSuggestionsView();
+      else if (state.activeTab === 'account') renderAccountView();
+      else if (state.activeTab === 'admin') renderAdminView();
+
+      mountCustomSlots();
+    }
+
+    // =========================================================================
+    // 4. INDIVIDUAL WORKSPACE VIEWS
+    // =========================================================================
+    function renderExploreView() {
+      const isDark = state.globalConfig.themeMode === 'dark';
+      const accent = ACCENT_MAP[state.globalConfig.accentColor] || ACCENT_MAP.blue;
+      const cardClass = isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200';
+
+      const banners = state.ads.filter(a => a.active && a.placement === 'explore_banner');
+      const filtered = state.sites.filter(s => {
+        const matchStatus = state.exploreStatusFilter === 'all' || s.status === state.exploreStatusFilter;
+        const q = (state.exploreQuery || '').toLowerCase();
+        const matchQ = !q || s.name.toLowerCase().includes(q) || s.domain.toLowerCase().includes(q) || s.description.toLowerCase().includes(q);
+        return matchStatus && matchQ;
+      });
+
+      const main = document.getElementById('main-content');
+      main.innerHTML = `
+        <div class="space-y-8">
+          ${banners.map(ad => `
+            <div class="p-4 rounded-xl border ${cardClass} flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <div class="text-xs text-slate-400">Sponsored Placement · ${ad.sponsor}</div>
+                <h3 class="text-base font-bold mt-0.5">${ad.title}</h3>
+                <p class="text-xs text-slate-400 mt-0.5">${ad.description}</p>
+              </div>
+              <a href="${ad.targetUrl}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 text-xs font-medium text-white rounded-lg ${accent.bg}">${ad.ctaText}</a>
+            </div>
+          `).join('')}
+
+          <div id="slot-explore_widget"></div>
+
+          <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+            <div class="space-y-1">
+              <div class="text-xs text-slate-400">Search Team Network Directory · ${state.sites.length} Properties Indexed</div>
+              <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Explore Search Network Properties</h1>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <input type="text" value="${state.exploreQuery}" oninput="state.exploreQuery=this.value; renderExploreView(); mountCustomSlots();" placeholder="Filter sites or domains..." class="px-3.5 py-2 text-xs rounded-lg border ${cardClass} outline-none" />
+              <div class="flex items-center gap-1 p-1 rounded-lg border ${cardClass}">
+                ${['all', 'live', 'under_construction', 'maintenance'].map(st => `
+                  <button onclick="state.exploreStatusFilter='${st}'; renderExploreView(); mountCustomSlots();" class="px-3 py-1 text-xs font-medium rounded-md ${state.exploreStatusFilter === st ? accent.bg + ' text-white' : 'text-slate-400'}">
+                    ${st === 'all' ? 'All' : st === 'under_construction' ? 'Under Construction' : st.charAt(0).toUpperCase() + st.slice(1)}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            ${filtered.map(s => {
+              const isConst = s.status === 'under_construction';
+              return `
+                <div class="p-6 rounded-xl border ${isConst ? 'border-amber-500/40 bg-slate-900/95' : cardClass} flex flex-col justify-between space-y-5">
+                  <div class="space-y-3">
+                    <div class="flex items-center justify-between text-xs">
+                      <span class="text-slate-400">${s.category} · <span class="font-mono">${s.domain}</span></span>
+                      <span class="font-semibold ${isConst ? 'text-amber-500' : s.status === 'maintenance' ? 'text-rose-500' : 'text-emerald-500'}">
+                        ${isConst ? 'Under Construction' : s.status === 'maintenance' ? 'Maintenance' : 'Operational'}
+                      </span>
+                    </div>
+                    <div class="flex items-baseline justify-between">
+                      <h2 class="text-xl font-bold">${s.name}</h2>
+                      <span class="text-xs font-mono tabular-nums text-slate-400">${s.avgLatencyMs}ms · ${s.qps} QPS</span>
+                    </div>
+                    <p class="text-sm text-slate-400">${s.description}</p>
+                    ${isConst ? `
+                      <div class="p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs">
+                        <strong>Under Construction Notice:</strong> ${s.name} (${s.domain}) is currently under active build-out.
+                      </div>
+                    ` : ''}
+                  </div>
+                  <div class="pt-4 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-3">
+                    <span class="text-xs font-mono text-slate-400">Uptime ${s.uptimePct}% · ${s.ownerTeam}</span>
+                    <div class="flex items-center gap-2">
+                      <button onclick="openPreviewDrawer('${s.id}')" class="px-3.5 py-2 text-xs font-medium rounded-lg border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700">Preview in Deck</button>
+                      <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 text-xs font-medium text-white rounded-lg ${accent.bg}">Open Site ↗</a>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMetricsView() {
+      const isDark = state.globalConfig.themeMode === 'dark';
+      const accent = ACCENT_MAP[state.globalConfig.accentColor] || ACCENT_MAP.blue;
+      const cardClass = isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200';
+      const latest = telemetrySeries[telemetrySeries.length - 1] || { qps: 0, lat: 0, bySite: {} };
+
+      const main = document.getElementById('main-content');
+      main.innerHTML = `
+        <div class="space-y-8">
+          <div class="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <div class="text-xs text-slate-400">Real-Time Performance Telemetry · 2s Interval</div>
+              <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Search Performance Metrics Dashboard</h1>
+            </div>
+            <button onclick="state.telemetryPaused = !state.telemetryPaused; renderMetricsView();" class="px-4 py-2 text-xs font-medium rounded-lg border ${cardClass}">
+              ${state.telemetryPaused ? 'Resume Stream' : 'Pause Stream'}
+            </button>
+          </div>
+
+          <div id="slot-dashboard_widget"></div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-5 rounded-xl border ${cardClass}">
+              <div class="text-xs text-slate-400">Total Network QPS</div>
+              <div class="text-2xl font-bold font-mono tabular-nums mt-2">${latest.qps.toLocaleString()} req/s</div>
+            </div>
+            <div class="p-5 rounded-xl border ${cardClass}">
+              <div class="text-xs text-slate-400">Weighted Median Latency</div>
+              <div class="text-2xl font-bold font-mono tabular-nums mt-2">${latest.lat} ms</div>
+            </div>
+            <div class="p-5 rounded-xl border ${cardClass}">
+              <div class="text-xs text-slate-400">Tail Latency (p95)</div>
+              <div class="text-2xl font-bold font-mono tabular-nums mt-2">${Math.round(latest.lat * 1.9)} ms</div>
+            </div>
+            <div class="p-5 rounded-xl border ${cardClass}">
+              <div class="text-xs text-slate-400">Indexed Properties</div>
+              <div class="text-2xl font-bold font-mono tabular-nums mt-2">${state.sites.length} Active</div>
+            </div>
+          </div>
+
+          <div class="rounded-xl border ${cardClass} overflow-hidden">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="text-xs text-slate-400 border-b border-slate-800">
+                  <th class="py-3 px-6">Property</th>
+                  <th class="py-3 px-4">Status</th>
+                  <th class="py-3 px-4 text-right">Live QPS</th>
+                  <th class="py-3 px-4 text-right">p50 Latency</th>
+                  <th class="py-3 px-4 text-right">p95 Latency</th>
+                  <th class="py-3 px-6 text-right">Launch</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/50">
+                ${state.sites.map(s => {
+                  const st = latest.bySite[s.id] || { qps: s.qps, lat: s.avgLatencyMs, p95: s.p95LatencyMs };
+                  return `
+                    <tr>
+                      <td class="py-3.5 px-6 font-semibold">${s.name} <span class="text-xs font-mono text-slate-400">(${s.domain})</span></td>
+                      <td class="py-3.5 px-4 text-xs ${s.status === 'under_construction' ? 'text-amber-500' : 'text-emerald-500'}">${s.status === 'under_construction' ? 'Under Construction' : 'Live'}</td>
+                      <td class="py-3.5 px-4 text-right font-mono tabular-nums">${st.qps.toLocaleString()}</td>
+                      <td class="py-3.5 px-4 text-right font-mono tabular-nums">${st.lat}ms</td>
+                      <td class="py-3.5 px-4 text-right font-mono tabular-nums text-slate-400">${st.p95}ms</td>
+                      <td class="py-3.5 px-6 text-right"><a href="${s.url}" target="_blank" class="text-xs text-blue-500 hover:underline">Visit ↗</a></td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 5. WEB AUDIO MICROPHONE & EARPHONE TEST STUDIO
+    // =========================================================================
+    let micStream = null, micCtx = null, micAnim = null;
+    let earCtx = null, earOsc = null, earPan = null;
+
+    function renderAudioView() {
+      const isDark = state.globalConfig.themeMode === 'dark';
+      const accent = ACCENT_MAP[state.globalConfig.accentColor] || ACCENT_MAP.blue;
+      const cardClass = isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200';
+
+      const main = document.getElementById('main-content');
+      main.innerHTML = `
+        <div class="space-y-8">
+          <div>
+            <div class="text-xs text-slate-400">Web Audio Hardware Diagnostics</div>
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Microphone & Earphone Test Studio</h1>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="p-6 rounded-xl border ${cardClass} space-y-5">
+              <div class="flex items-center justify-between">
+                <h2 class="text-lg font-bold">Real-Time Microphone Spectrum & dB Meter</h2>
+                <button id="mic-btn" onclick="toggleMicTest()" class="px-4 py-2 text-xs font-medium text-white rounded-lg ${accent.bg}">Start Mic Test</button>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+                <div class="flex justify-between text-xs font-mono text-slate-400 mb-2">
+                  <span>Live FFT Spectrum</span>
+                  <span id="mic-db-readout">Standby (-60 dB)</span>
+                </div>
+                <canvas id="mic-canvas" width="500" height="140" class="w-full h-36 block"></canvas>
+              </div>
+            </div>
+
+            <div class="p-6 rounded-xl border ${cardClass} space-y-5">
+              <div class="flex items-center justify-between">
+                <h2 class="text-lg font-bold">Left, Right & Stereo Earphone Isolation Check</h2>
+                <button onclick="stopEarphoneTone()" class="px-3 py-1.5 text-xs rounded-lg border border-rose-500/40 text-rose-400">Mute Tone</button>
+              </div>
+              <div class="grid grid-cols-3 gap-3">
+                <button onclick="playEarTone(-1, 'Left Ear Only')" class="p-4 rounded-xl border border-slate-800 bg-slate-950 hover:border-blue-500 text-left">
+                  <div class="text-sm font-bold">Left Ear Only</div>
+                  <div class="text-xs font-mono text-slate-400 mt-1">Pan -1.0 (100% L)</div>
+                </button>
+                <button onclick="playEarTone(0, 'Stereo Center')" class="p-4 rounded-xl border border-slate-800 bg-slate-950 hover:border-blue-500 text-left">
+                  <div class="text-sm font-bold">Stereo Center</div>
+                  <div class="text-xs font-mono text-slate-400 mt-1">Pan 0.0 (L + R)</div>
+                </button>
+                <button onclick="playEarTone(1, 'Right Ear Only')" class="p-4 rounded-xl border border-slate-800 bg-slate-950 hover:border-blue-500 text-left">
+                  <div class="text-sm font-bold">Right Ear Only</div>
+                  <div class="text-xs font-mono text-slate-400 mt-1">Pan +1.0 (100% R)</div>
+                </button>
+              </div>
+              <div id="ear-status" class="text-xs font-mono text-slate-400">Select Left, Stereo, or Right to play a 440 Hz reference sine wave.</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function toggleMicTest() {
+      if (micStream) {
+        cancelAnimationFrame(micAnim);
+        micStream.getTracks().forEach(t => t.stop());
+        micStream = null;
+        if (micCtx) micCtx.close();
+        micCtx = null;
+        const btn = document.getElementById('mic-btn');
+        if (btn) btn.textContent = 'Start Mic Test';
+        return;
+      }
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        micCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const src = micCtx.createMediaStreamSource(micStream);
+        const analyser = micCtx.createAnalyser();
+        analyser.fftSize = 128;
+        src.connect(analyser);
+        document.getElementById('mic-btn').textContent = 'Stop Mic Test';
+        const data = new Uint8Array(analyser.frequencyBinCount);
+        const draw = () => {
+          analyser.getByteFrequencyData(data);
+          const canvas = document.getElementById('mic-canvas');
+          if (!canvas) return;
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          let sum = 0;
+          const bw = canvas.width / 32 - 3;
+          for (let i = 0; i < 32; i++) {
+            sum += data[i];
+            const h = Math.max(4, (data[i] / 255) * (canvas.height - 10));
+            ctx.fillStyle = data[i] > 180 ? '#f59e0b' : '#10b981';
+            ctx.fillRect(i * (bw + 3), canvas.height - h, bw, h);
+          }
+          const avg = sum / 32;
+          const db = Math.max(-60, Math.round((avg / 255) * 60 - 60));
+          const rd = document.getElementById('mic-db-readout');
+          if (rd) rd.textContent = 'Level: ' + db + ' dB';
+          micAnim = requestAnimationFrame(draw);
+        };
+        draw();
+      } catch (e) {
+        showToast('Microphone permission denied or unavailable');
+      }
+    }
+
+    function playEarTone(panVal, label) {
+      stopEarphoneTone();
+      earCtx = new (window.AudioContext || window.webkitAudioContext)();
+      earOsc = earCtx.createOscillator();
+      earPan = earCtx.createStereoPanner();
+      const gain = earCtx.createGain();
+      earOsc.frequency.value = 440;
+      earPan.pan.value = panVal;
+      gain.gain.value = 0.2;
+      earOsc.connect(earPan);
+      earPan.connect(gain);
+      gain.connect(earCtx.destination);
+      earOsc.start();
+      const st = document.getElementById('ear-status');
+      if (st) st.textContent = 'Playing 440 Hz tone on: ' + label;
+    }
+
+    function stopEarphoneTone() {
+      if (earOsc) { try { earOsc.stop(); } catch (e) {} earOsc = null; }
+      if (earCtx) { try { earCtx.close(); } catch (e) {} earCtx = null; }
+      const st = document.getElementById('ear-status');
+      if (st) st.textContent = 'Tone muted.';
+    }
+
+    // =========================================================================
+    // 6. FEEDBACK, SUGGESTIONS, ACCOUNT & GLOBAL VAULT, AND ADMIN VIEWS
+    // =========================================================================
+    function renderFeedbackView() {
+      const isDark = state.globalConfig.themeMode === 'dark';
+      const accent = ACCENT_MAP[state.globalConfig.accentColor] || ACCENT_MAP.blue;
+      const cardClass = isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200';
+
+      const main = document.getElementById('main-content');
+      main.innerHTML = `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <form onsubmit="submitFeedback(event)" class="lg:col-span-5 p-6 rounded-xl border ${cardClass} space-y-4">
+            <h2 class="text-lg font-bold">Submit Search Team Feedback</h2>
+            <select id="fb-site" class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}">
+              ${state.sites.map(s => `<option value="${s.name}">${s.name}</option>`).join('')}
+            </select>
+            <input id="fb-author" type="text" placeholder="Your Name" class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}" />
+            <input id="fb-title" type="text" required placeholder="Issue Summary" class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}" />
+            <textarea id="fb-msg" rows="4" required placeholder="Reproduction details..." class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}"></textarea>
+            <button type="submit" class="w-full py-2.5 text-xs font-medium text-white rounded-lg ${accent.bg}">Submit Feedback Report</button>
+          </form>
+          <div class="lg:col-span-7 space-y-3">
+            ${state.feedbackList.map(fb => `
+              <div class="p-5 rounded-xl border ${cardClass} space-y-2">
+                <div class="flex justify-between text-xs text-slate-400">
+                  <span class="font-semibold text-blue-500">${fb.siteName} · ${fb.author}</span>
+                  <span class="uppercase">${fb.status}</span>
+                </div>
+                <h3 class="text-base font-bold">${fb.title}</h3>
+                <p class="text-sm text-slate-400">${fb.message}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function submitFeedback(e) {
+      e.preventDefault();
+      state.feedbackList.unshift({
+        id: 'fb-' + Date.now(),
+        siteName: document.getElementById('fb-site').value,
+        author: document.getElementById('fb-author').value || 'Team Member',
+        severity: 'medium',
+        category: 'Search Ops',
+        title: document.getElementById('fb-title').value,
+        message: document.getElementById('fb-msg').value,
+        status: 'open',
+        createdAt: 'Just now'
+      });
+      saveState();
+      renderFeedbackView();
+      showToast('Feedback logged');
+    }
+
+    function renderSuggestionsView() {
+      const isDark = state.globalConfig.themeMode === 'dark';
+      const accent = ACCENT_MAP[state.globalConfig.accentColor] || ACCENT_MAP.blue;
+      const cardClass = isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200';
+
+      const main = document.getElementById('main-content');
+      main.innerHTML = `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <form onsubmit="submitSuggestion(event)" class="lg:col-span-5 p-6 rounded-xl border ${cardClass} space-y-4">
+            <h2 class="text-lg font-bold">Propose a Suggestion</h2>
+            <select id="sug-site" class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}">
+              ${state.sites.map(s => `<option value="${s.name}">${s.name}</option>`).join('')}
+            </select>
+            <input id="sug-title" type="text" required placeholder="Suggestion Title" class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}" />
+            <textarea id="sug-desc" rows="4" required placeholder="Expected impact..." class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}"></textarea>
+            <button type="submit" class="w-full py-2.5 text-xs font-medium text-white rounded-lg ${accent.bg}">Post Suggestion</button>
+          </form>
+          <div class="lg:col-span-7 space-y-3">
+            ${state.suggestions.map(s => `
+              <div class="p-5 rounded-xl border ${cardClass} flex items-start gap-4">
+                <button onclick="upvoteSug('${s.id}')" class="px-3 py-2 rounded-lg border border-slate-700 font-mono text-xs font-bold">▲ ${s.votes}</button>
+                <div class="space-y-1">
+                  <div class="text-xs text-blue-500 font-semibold">${s.targetSite} · ${s.status.toUpperCase()}</div>
+                  <h3 class="text-base font-bold">${s.title}</h3>
+                  <p class="text-sm text-slate-400">${s.description}</p>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function submitSuggestion(e) {
+      e.preventDefault();
+      state.suggestions.unshift({
+        id: 'sug-' + Date.now(),
+        targetSite: document.getElementById('sug-site').value,
+        title: document.getElementById('sug-title').value,
+        description: document.getElementById('sug-desc').value,
+        category: 'Feature',
+        author: state.userAccount.displayName,
+        votes: 1,
+        hasVoted: true,
+        status: 'proposed'
+      });
+      saveState();
+      renderSuggestionsView();
+      showToast('Suggestion posted');
+    }
+
+    function upvoteSug(id) {
+      const item = state.suggestions.find(s => s.id === id);
+      if (item) { item.votes += 1; saveState(); renderSuggestionsView(); }
+    }
+
+    function renderAccountView() {
+      const isDark = state.globalConfig.themeMode === 'dark';
+      const accent = ACCENT_MAP[state.globalConfig.accentColor] || ACCENT_MAP.blue;
+      const cardClass = isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200';
+
+      const main = document.getElementById('main-content');
+      main.innerHTML = `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <form onsubmit="saveAccountProfile(event)" class="lg:col-span-5 p-6 rounded-xl border ${cardClass} space-y-4">
+            <h2 class="text-lg font-bold">Team Operator Account Profile</h2>
+            <input id="acc-name" type="text" value="${state.userAccount.displayName}" class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}" placeholder="Display Name" />
+            <input id="acc-title" type="text" value="${state.userAccount.jobTitle}" class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}" placeholder="Job Title" />
+            <input id="acc-dept" type="text" value="${state.userAccount.department}" class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}" placeholder="Department" />
+            <textarea id="acc-bio" rows="3" class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}">${state.userAccount.bio}</textarea>
+            <button type="submit" class="w-full py-2.5 text-xs font-medium text-white rounded-lg ${accent.bg}">Save Account Profile Globally</button>
+          </form>
+
+          <div class="lg:col-span-7 space-y-6">
+            <form onsubmit="saveGlobalEntryForm(event)" class="p-6 rounded-xl border ${cardClass} space-y-4">
+              <h2 class="text-lg font-bold">Global Browser Data Registry (LocalStorage + IndexedDB + Cross-Tab)</h2>
+              <p class="text-xs text-slate-400">Also accessible anywhere via <code class="font-mono">window.SearchDeckGlobal.set(key, value)</code></p>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input id="g-key" type="text" required placeholder="Global Key" class="px-3 py-2 text-xs font-mono rounded-lg border ${cardClass}" />
+                <input id="g-cat" type="text" value="Global State" class="px-3 py-2 text-xs rounded-lg border ${cardClass}" />
+                <input id="g-val" type="text" required placeholder="Value / JSON" class="px-3 py-2 text-xs font-mono rounded-lg border ${cardClass}" />
+              </div>
+              <button type="submit" class="px-4 py-2 text-xs font-medium text-white rounded-lg ${accent.bg}">Save Global Data Key</button>
+            </form>
+
+            <div class="rounded-xl border ${cardClass} divide-y divide-slate-800/50">
+              ${state.globalStore.map(item => `
+                <div class="p-4 flex items-center justify-between gap-4">
+                  <div>
+                    <div class="text-xs font-mono font-bold text-blue-500">${item.key} <span class="text-slate-400 font-sans">· ${item.category}</span></div>
+                    <div class="text-xs font-mono mt-0.5">${item.value}</div>
+                  </div>
+                  <button onclick="window.SearchDeckGlobal.remove('${item.id}')" class="text-xs text-rose-500">Delete</button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function saveAccountProfile(e) {
+      e.preventDefault();
+      state.userAccount.displayName = document.getElementById('acc-name').value;
+      state.userAccount.jobTitle = document.getElementById('acc-title').value;
+      state.userAccount.department = document.getElementById('acc-dept').value;
+      state.userAccount.bio = document.getElementById('acc-bio').value;
+      saveState();
+      renderApp();
+      showToast('Saved operator account globally');
+    }
+
+    function saveGlobalEntryForm(e) {
+      e.preventDefault();
+      window.SearchDeckGlobal.set(
+        document.getElementById('g-key').value,
+        document.getElementById('g-val').value,
+        document.getElementById('g-cat').value
+      );
+    }
+
+    // =========================================================================
+    // 7. PASSCODE-PROTECTED ADMIN CONSOLE (Code never displayed in UI)
+    // =========================================================================
+    function renderAdminView() {
+      const isDark = state.globalConfig.themeMode === 'dark';
+      const accent = ACCENT_MAP[state.globalConfig.accentColor] || ACCENT_MAP.blue;
+      const cardClass = isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200';
+      const main = document.getElementById('main-content');
+
+      if (!state.isAdminUnlocked) {
+        main.innerHTML = `
+          <div class="py-12 flex items-center justify-center">
+            <form onsubmit="attemptAdminUnlock(event)" class="w-full max-w-md p-8 rounded-xl border ${cardClass} space-y-5">
+              <h1 class="text-xl font-bold">Admin Console Authentication</h1>
+              <p class="text-xs text-slate-400">Enter your administrator authorization code to unlock site management, ad campaigns, and live app code injection.</p>
+              <input id="admin-code-inp" type="password" required autocomplete="off" placeholder="Enter secret access code" class="w-full px-3.5 py-2.5 text-sm font-mono rounded-lg border ${cardClass}" />
+              <div id="admin-err" class="hidden text-xs text-rose-500">Invalid administrator code.</div>
+              <button type="submit" class="w-full py-2.5 text-xs font-medium text-white rounded-lg ${accent.bg}">Unlock Admin Console</button>
+            </form>
+          </div>
+        `;
+        return;
+      }
+
+      main.innerHTML = `
+        <div class="space-y-8">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div class="text-xs text-emerald-500 font-semibold">Administrator Session Unlocked</div>
+              <h1 class="text-2xl font-bold">Search Deck Admin Control Center</h1>
+            </div>
+            <button onclick="state.isAdminUnlocked=false; saveState(); renderApp();" class="px-4 py-2 text-xs font-medium text-white bg-rose-600 rounded-lg">Lock Session</button>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Add Site -->
+            <form onsubmit="adminAddSite(event)" class="p-6 rounded-xl border ${cardClass} space-y-3">
+              <h2 class="text-base font-bold">1. Add Site to Explore Page</h2>
+              <input id="adm-s-name" type="text" required placeholder="Site Name (e.g. NewsSearch.net)" class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}" />
+              <input id="adm-s-url" type="text" required placeholder="https://example.vercel.app" class="w-full px-3 py-2 text-xs font-mono rounded-lg border ${cardClass}" />
+              <select id="adm-s-status" class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}">
+                <option value="live">Live</option>
+                <option value="under_construction">Under Construction</option>
+                <option value="maintenance">Maintenance</option>
+              </select>
+              <textarea id="adm-s-desc" rows="2" placeholder="Site description..." class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}"></textarea>
+              <button type="submit" class="w-full py-2 text-xs font-medium text-white rounded-lg ${accent.bg}">Add Site</button>
+            </form>
+
+            <!-- Publish Ad -->
+            <form onsubmit="adminAddAd(event)" class="p-6 rounded-xl border ${cardClass} space-y-3">
+              <h2 class="text-base font-bold">2. Put Ad Campaign on Site</h2>
+              <input id="adm-ad-title" type="text" required placeholder="Ad Headline" class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}" />
+              <input id="adm-ad-desc" type="text" required placeholder="Ad Description" class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}" />
+              <input id="adm-ad-url" type="text" value="https://all-search-zeta.vercel.app" class="w-full px-3 py-2 text-xs font-mono rounded-lg border ${cardClass}" />
+              <input id="adm-ad-cta" type="text" value="Launch Now" class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}" />
+              <button type="submit" class="w-full py-2 text-xs font-medium text-white rounded-lg ${accent.bg}">Deploy Ad Banner</button>
+            </form>
+
+            <!-- Live App Code Injector -->
+            <form onsubmit="adminInjectCode(event)" class="p-6 rounded-xl border ${cardClass} space-y-3">
+              <h2 class="text-base font-bold">3. Add to App's Code Within Site</h2>
+              <input id="adm-c-name" type="text" required value="Custom Live Widget" class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}" />
+              <select id="adm-c-slot" class="w-full px-3 py-2 text-xs rounded-lg border ${cardClass}">
+                <option value="explore_widget">Explore Page Widget Slot</option>
+                <option value="dashboard_widget">Metrics Dashboard Slot</option>
+                <option value="global_top">Global Top Header Slot</option>
+              </select>
+              <textarea id="adm-c-html" rows="3" placeholder="Custom HTML..." class="w-full p-2 text-xs font-mono rounded-lg border ${cardClass}"><div class="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-xs">Custom Admin Code Block Active</div></textarea>
+              <textarea id="adm-c-js" rows="2" placeholder="Custom JS (container in scope)..." class="w-full p-2 text-xs font-mono rounded-lg border ${cardClass}"></textarea>
+              <button type="submit" class="w-full py-2 text-xs font-medium text-white rounded-lg ${accent.bg}">Inject Code into Site</button>
+            </form>
+          </div>
+        </div>
+      `;
+    }
+
+    function attemptAdminUnlock(e) {
+      e.preventDefault();
+      const val = document.getElementById('admin-code-inp').value;
+      if (val === AUTH_TOKEN) {
+        state.isAdminUnlocked = true;
+        saveState();
+        renderApp();
+        showToast('Admin Console unlocked');
+      } else {
+        document.getElementById('admin-err').classList.remove('hidden');
+      }
+    }
+
+    function adminAddSite(e) {
+      e.preventDefault();
+      const name = document.getElementById('adm-s-name').value.trim();
+      const rawUrl = document.getElementById('adm-s-url').value.trim();
+      const url = rawUrl.startsWith('http') ? rawUrl : 'https://' + rawUrl;
+      const domain = url.replace(/^https?:\/\//, '').split('/')[0];
+      state.sites.push({
+        id: 'site-' + Date.now(),
+        name,
+        domain,
+        url,
+        description: document.getElementById('adm-s-desc').value || 'Added via Search Deck Admin Console.',
+        category: 'Search Property',
+        status: document.getElementById('adm-s-status').value,
+        avgLatencyMs: 35,
+        p95LatencyMs: 70,
+        uptimePct: 99.95,
+        qps: 900,
+        errorRatePct: 0.03,
+        indexSizeMillion: 20,
+        ownerTeam: 'Search Ops'
+      });
+      saveState();
+      showToast('Added ' + name + ' to Explore page');
+      renderAdminView();
+    }
+
+    function adminAddAd(e) {
+      e.preventDefault();
+      state.ads.unshift({
+        id: 'ad-' + Date.now(),
+        title: document.getElementById('adm-ad-title').value,
+        description: document.getElementById('adm-ad-desc').value,
+        targetUrl: document.getElementById('adm-ad-url').value,
+        ctaText: document.getElementById('adm-ad-cta').value,
+        sponsor: 'Search Team Admin',
+        placement: 'explore_banner',
+        active: true
+      });
+      saveState();
+      showToast('Published Ad Campaign');
+      renderAdminView();
+    }
+
+    function adminInjectCode(e) {
+      e.preventDefault();
+      state.codeModules.push({
+        id: 'mod-' + Date.now(),
+        name: document.getElementById('adm-c-name').value,
+        placement: document.getElementById('adm-c-slot').value,
+        html: document.getElementById('adm-c-html').value,
+        css: '',
+        js: document.getElementById('adm-c-js').value,
+        enabled: true
+      });
+      saveState();
+      mountCustomSlots();
+      showToast('Injected custom app code module');
+    }
+
+    // Boot
+    renderApp();
+  </script>
+</body>
+</html>
